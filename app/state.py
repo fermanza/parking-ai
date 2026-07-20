@@ -1,5 +1,7 @@
 from typing import TypedDict
 from typing import Optional
+from typing import List
+from typing import Dict
 
 
 class WorkflowState(TypedDict):
@@ -9,6 +11,10 @@ class WorkflowState(TypedDict):
     #################################################
 
     question: str
+
+    session_id: str
+
+    history: List[Dict[str, str]]
 
     #################################################
     # Supervisor

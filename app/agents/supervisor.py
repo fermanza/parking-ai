@@ -5,6 +5,11 @@ class SupervisorAgent(BaseAgent):
 
     def execute(self, state):
 
+        history = "\n".join(
+            f'{message["role"]}: {message["content"]}'
+            for message in state.get("history", [])[-6:]
+        )
+
         prompt = f"""
 You are a supervisor.
 
@@ -19,6 +24,10 @@ pricing
 support
 
 judge
+
+Conversation history:
+
+{history}
 
 Question:
 

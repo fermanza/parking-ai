@@ -1,7 +1,9 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
+from typing import Optional
 
 from app.graph.workflow import graph
+from app.memory import memory_store
 
 router = APIRouter()
 
@@ -9,14 +11,21 @@ router = APIRouter()
 class ChatRequest(BaseModel):
 
     question: str
+    session_id: Optional[str] = None
 
 
 @router.post("/chat")
 def chat(request: ChatRequest):
 
+    session_id = request.session_id or memory_store.create_session_id()
+
     state = {
 
         "question": request.question,
+
+        "session_id": session_id,
+
+        "history": memory_store.get_history(session_id),
 
         "next_agent": None,
 
