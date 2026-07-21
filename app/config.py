@@ -56,6 +56,19 @@ class Settings:
     CHROMA_COLLECTION = "parking_documents"
 
     ###########################################
+    # RAG Configuration
+    ###########################################
+
+    RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
+
+    DOCUMENTS_DIR = os.getenv(
+        "DOCUMENTS_DIR",
+        "documents"
+    )
+
+    ENABLE_RAG = os.getenv("ENABLE_RAG", "true").lower() == "true"
+
+    ###########################################
     # Logging
     ###########################################
 

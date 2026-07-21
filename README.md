@@ -158,7 +158,7 @@ ANTHROPIC_API_KEY=your_api_key
 CLAUDE_MODEL=claude-sonnet-4-20250514
 ```
 
-## Interview Talking Points
+## Talking Points
 
 - FastAPI is the HTTP API layer.
 - LangGraph is the orchestration layer.
@@ -174,3 +174,79 @@ CLAUDE_MODEL=claude-sonnet-4-20250514
 - Memory is not persistent across server restarts.
 - `redis` and `chromadb` are listed as future-oriented dependencies but are not currently used by the app.
 - Production use should add authentication, persistent storage, logging, and real parking/payment API integrations.
+
+## RAG Implementation
+
+The project now includes RAG (Retrieval-Augmented Generation) capabilities:
+
+- **Document Store**: Loads parking-related documents from `documents/` directory
+- **Retrievers**: ChromaDB-based (if installed) or keyword-based fallback
+- **Embeddings**: Simple hash-based embeddings for local provider, extensible for OpenAI/Anthropic
+- **Agent Integration**: Pricing, Reservation, and Support agents use RAG to enhance responses
+
+Sample documents included:
+- `pricing.txt` - Parking rates and policies
+- `reservations.txt` - Booking and cancellation policies
+- `policies.txt` - Facility rules and regulations
+- `faq.txt` - Frequently asked questions
+
+## Guardrails
+
+Response validation through guardrails:
+
+- **EmptyResponseGuardrail** - Prevents empty responses
+- **MinLengthGuardrail** - Ensures minimum response length
+- **MaxLengthGuardrail** - Prevents excessively long responses
+- **ProfanityGuardrail** - Filters inappropriate language
+- **PIIGuardrail** - Detects potential PII (emails, phones, SSNs)
+- **ParkingDomainGuardrail** - Ensures parking-relevant content
+
+Guardrails are applied in the ResponseAgent before returning to the user.
+
+## Evaluation Framework
+
+Run evaluations to test system quality:
+
+```bash
+./.venv/bin/python tests/test_eval.py
+```
+
+Evaluators included:
+- **ResponseQualityEvaluator** - Tests response quality and keyword matching
+- **AgentRoutingEvaluator** - Tests supervisor routing accuracy
+- **GuardrailEvaluator** - Tests guardrail effectiveness
+
+Metrics tracked:
+- Pass rate, average score, guardrail pass rate
+- Response times, agent usage distribution
+- Error rates and failure reasons
+
+## Monitoring
+
+View runtime metrics via API:
+
+```bash
+GET http://127.0.0.1:8000/metrics
+```
+
+Reset metrics:
+
+```bash
+POST http://127.0.0.1:8000/metrics/reset
+```
+
+Metrics include:
+- Total requests and error rate
+- Agent usage distribution
+- Guardrail pass/fail rates
+- Average response times
+
+## Configuration
+
+RAG and guardrails can be configured via environment variables:
+
+```text
+ENABLE_RAG=true              # Enable/disable RAG (default: true)
+RAG_TOP_K=3                  # Number of documents to retrieve
+DOCUMENTS_DIR=documents      # Documents directory path
+```

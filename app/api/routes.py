@@ -4,6 +4,8 @@ from typing import Optional
 
 from app.graph.workflow import graph
 from app.memory import memory_store
+from app.metrics import metrics_collector, MetricEvent
+import time
 
 router = APIRouter()
 
@@ -16,7 +18,8 @@ class ChatRequest(BaseModel):
 
 @router.post("/chat")
 def chat(request: ChatRequest):
-
+    start_time = time.time()
+    
     session_id = request.session_id or memory_store.create_session_id()
 
     state = {
@@ -49,6 +52,46 @@ def chat(request: ChatRequest):
 
     }
 
+    # Record request start
+    metrics_collector.record_event(
+        MetricEvent(
+            timestamp=time.time(),
+            event_type="request",
+            session_id=session_id,
+            success=True,
+            metadata={"question": request.question}
+        )
+    )
+
     result = graph.invoke(state)
+    
+    # Record request completion
+    duration = time.time() - start_time
+    metrics_collector.record_event(
+        MetricEvent(
+            timestamp=time.time(),
+            event_type="request_complete",
+            session_id=session_id,
+            duration=duration,
+            success=True,
+            metadata={
+                "agent": result.get("next_agent"),
+                "requires_human": result.get("requires_human")
+            }
+        )
+    )
 
     return result
+
+
+@router.get("/metrics")
+def get_metrics():
+    """Get current metrics summary."""
+    return metrics_collector.get_summary()
+
+
+@router.post("/metrics/reset")
+def reset_metrics():
+    """Reset all metrics."""
+    metrics_collector.reset()
+    return {"message": "Metrics reset successfully"}
